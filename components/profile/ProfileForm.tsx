@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import { CalendarIcon, Loader2, User, Camera, Mail, Pencil, X } from "lucide-react";
+import { CalendarIcon, Loader2, User, Camera, Mail, Pencil, X, Heart, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -21,7 +21,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 // Schema Validation
 const profileSchema = z.object({
@@ -65,7 +65,6 @@ export function ProfileForm({ user, profile, treatmentStats }: ProfileFormProps)
         },
     });
 
-    // Handle Image Selection
     const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -128,309 +127,282 @@ export function ProfileForm({ user, profile, treatmentStats }: ProfileFormProps)
         setPreviewUrl(profile?.avatar_url);
     };
 
-    // Info Display Component - Clean & Minimal
-    const InfoField = ({ label, value }: { label: string; value: string | null | undefined }) => (
-        <div className="space-y-1.5">
-            <p className="text-xs font-medium text-[#123458]/60 uppercase tracking-wider">{label}</p>
-            <p className="text-base font-medium text-[#030303]">{value || "—"}</p>
+    // Info Display Component
+    const InfoItem = ({ label, value }: { label: string; value: string | null | undefined }) => (
+        <div className="space-y-1">
+            <p className="text-xs font-semibold text-[#123458]/60 uppercase tracking-wider">{label}</p>
+            <p className="text-base font-semibold text-[#030303]">{value || "—"}</p>
         </div>
     );
 
     return (
-        <div className="w-full max-w-2xl mx-auto space-y-8 py-8 px-4">
+        <div className="w-full max-w-2xl mx-auto space-y-6 py-6 px-4">
 
             {/* ═══════════════════════════════════════════════════════════════
-                1. Profile Header - Centered
+                PROFILE HEADER CARD
             ═══════════════════════════════════════════════════════════════ */}
-            <header className="text-center space-y-5">
-                {/* Avatar */}
-                <div className="relative inline-block">
-                    <Avatar className="h-28 w-28 border-4 border-[#D4C9BE] shadow-lg mx-auto ring-4 ring-[#F1EFEC]">
-                        <AvatarImage src={previewUrl || ""} className="object-cover" />
-                        <AvatarFallback className="bg-[#D4C9BE] text-[#123458] text-3xl font-semibold">
-                            {profile?.first_name?.[0]?.toUpperCase() || <User className="h-10 w-10" />}
-                        </AvatarFallback>
-                    </Avatar>
+            <Card className="bg-gradient-to-br from-[#D4C9BE] to-[#D4C9BE]/80 border-none shadow-lg rounded-3xl p-8 text-center relative overflow-hidden">
+                {/* Decorative Elements */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#123458]/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#123458]/5 rounded-full translate-y-1/2 -translate-x-1/2" />
 
-                    {/* Camera overlay - only in Edit Mode */}
-                    {isEditing && (
-                        <label
-                            htmlFor="avatar-upload"
-                            className="absolute bottom-0 right-0 bg-[#123458] text-white p-2.5 rounded-full shadow-lg cursor-pointer hover:bg-[#123458]/90 transition-all duration-200 hover:scale-105"
-                            aria-label="เปลี่ยนรูปโปรไฟล์"
+                <div className="relative z-10 space-y-5">
+                    {/* Avatar */}
+                    <div className="relative inline-block">
+                        <Avatar className="h-32 w-32 border-4 border-[#F1EFEC] shadow-xl mx-auto ring-4 ring-[#123458]/10">
+                            <AvatarImage src={previewUrl || ""} className="object-cover" />
+                            <AvatarFallback className="bg-[#123458] text-[#F1EFEC] text-4xl font-bold">
+                                {profile?.first_name?.[0]?.toUpperCase() || <User className="h-12 w-12" />}
+                            </AvatarFallback>
+                        </Avatar>
+
+                        {isEditing && (
+                            <label
+                                htmlFor="avatar-upload"
+                                className="absolute bottom-1 right-1 bg-[#123458] text-white p-3 rounded-full shadow-lg cursor-pointer hover:bg-[#123458]/90 transition-all duration-200 hover:scale-110"
+                            >
+                                <Camera className="h-5 w-5" />
+                                <input
+                                    id="avatar-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleAvatarChange}
+                                    disabled={isLoading}
+                                />
+                            </label>
+                        )}
+                    </div>
+
+                    {/* Name & Email */}
+                    <div className="space-y-2">
+                        <h1 className="text-3xl sm:text-4xl font-bold text-[#123458] tracking-tight">
+                            {profile?.first_name || "ยังไม่ระบุชื่อ"} {profile?.last_name || ""}
+                        </h1>
+                        <div className="inline-flex items-center gap-2 bg-[#F1EFEC]/60 px-4 py-2 rounded-full">
+                            <Mail className="h-4 w-4 text-[#123458]/60" />
+                            <span className="text-sm text-[#030303]/70">{user?.email}</span>
+                        </div>
+                    </div>
+
+                    {/* Edit Button */}
+                    {!isEditing && (
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsEditing(true)}
+                            className="bg-[#F1EFEC] border-[#123458]/20 text-[#123458] hover:bg-[#123458] hover:text-white hover:border-[#123458] rounded-full px-8 h-12 font-semibold transition-all duration-300 shadow-sm hover:shadow-md"
                         >
-                            <Camera className="h-4 w-4" />
-                            <input
-                                id="avatar-upload"
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={handleAvatarChange}
-                                disabled={isLoading}
-                            />
-                        </label>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            แก้ไขโปรไฟล์
+                        </Button>
                     )}
                 </div>
-
-                {/* Name & Email */}
-                <div className="space-y-2">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-[#123458] tracking-tight">
-                        {profile?.first_name || "ยังไม่ระบุชื่อ"} {profile?.last_name || ""}
-                    </h1>
-                    <div className="flex items-center justify-center gap-2 text-[#030303]/50">
-                        <Mail className="h-4 w-4" />
-                        <span className="text-sm">{user?.email}</span>
-                    </div>
-                </div>
-
-                {/* Edit Button (Ghost/Outline) - Only when NOT editing */}
-                {!isEditing && (
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsEditing(true)}
-                        className="border-[#123458]/30 text-[#123458] hover:bg-[#123458] hover:text-white hover:border-[#123458] rounded-full px-6 h-10 font-medium transition-all duration-200"
-                    >
-                        <Pencil className="mr-2 h-4 w-4" />
-                        แก้ไขโปรไฟล์
-                    </Button>
-                )}
-            </header>
+            </Card>
 
 
             {/* ═══════════════════════════════════════════════════════════════
-                2. Single Information Card
+                PERSONAL INFORMATION CARD
             ═══════════════════════════════════════════════════════════════ */}
-            <Card className="bg-[#D4C9BE] border-none shadow-sm rounded-2xl overflow-hidden">
-                <CardHeader className="pb-0 pt-6 px-6">
-                    <CardTitle className="flex items-center gap-2.5 text-[#123458] text-lg font-bold">
-                        <User className="h-5 w-5" />
-                        ข้อมูล
-                    </CardTitle>
-                </CardHeader>
+            <Card className="bg-[#D4C9BE] border-none shadow-sm rounded-2xl p-6 sm:p-8 space-y-6">
+                {/* Section Header */}
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-[#F1EFEC] rounded-xl shadow-sm">
+                        <User className="h-5 w-5 text-[#123458]" />
+                    </div>
+                    <h2 className="text-lg font-bold text-[#123458]">
+                        ข้อมูลส่วนตัว
+                    </h2>
+                </div>
 
-                <CardContent className="pt-6 pb-8 px-6">
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    {isEditing ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 animate-in fade-in duration-300">
+                            {/* ชื่อจริง */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-[#030303]">ชื่อจริง <span className="text-red-500">*</span></label>
+                                <Input
+                                    {...form.register("firstName")}
+                                    placeholder="กรอกชื่อจริง"
+                                    className="h-12 bg-[#F1EFEC] border-[#123458]/20 rounded-xl"
+                                />
+                                {form.formState.errors.firstName && (
+                                    <p className="text-xs text-red-600">{form.formState.errors.firstName.message}</p>
+                                )}
+                            </div>
 
-                        {/* ─────────────────────────────────────────────────────
-                            Section 1: ข้อมูลส่วนตัว
-                        ───────────────────────────────────────────────────── */}
-                        <section className="space-y-5">
-                            <h3 className="text-sm font-semibold text-[#123458] uppercase tracking-wide border-l-[3px] border-[#123458] pl-3">
-                                ข้อมูลส่วนตัว
-                            </h3>
+                            {/* นามสกุล */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-[#030303]">นามสกุล <span className="text-red-500">*</span></label>
+                                <Input
+                                    {...form.register("lastName")}
+                                    placeholder="กรอกนามสกุล"
+                                    className="h-12 bg-[#F1EFEC] border-[#123458]/20 rounded-xl"
+                                />
+                                {form.formState.errors.lastName && (
+                                    <p className="text-xs text-red-600">{form.formState.errors.lastName.message}</p>
+                                )}
+                            </div>
 
-                            {isEditing ? (
-                                // EDIT MODE
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-in fade-in duration-300">
-                                    {/* ชื่อจริง */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[#123458]">ชื่อจริง</label>
-                                        <Input
-                                            {...form.register("firstName")}
-                                            placeholder="กรอกชื่อจริง"
-                                            className="bg-[#F1EFEC] border-[#123458]/20 focus-visible:ring-[#123458] focus-visible:border-[#123458] rounded-lg h-11"
+                            {/* ชื่อเล่น */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-[#030303]">ชื่อเล่น</label>
+                                <Input
+                                    {...form.register("nickname")}
+                                    placeholder="กรอกชื่อเล่น (ไม่บังคับ)"
+                                    className="h-12 bg-[#F1EFEC] border-[#123458]/20 rounded-xl"
+                                />
+                            </div>
+
+                            {/* วันเกิด */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-[#030303]">วันเกิด</label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className={cn(
+                                                "w-full justify-start text-left font-medium h-12 bg-[#F1EFEC] border-[#123458]/20 rounded-xl",
+                                                !form.watch("birthDate") && "text-[#030303]/40"
+                                            )}
+                                        >
+                                            <CalendarIcon className="mr-3 h-5 w-5 text-[#123458]/50" />
+                                            {form.watch("birthDate")
+                                                ? format(form.watch("birthDate")!, "d MMMM yyyy", { locale: th })
+                                                : "เลือกวันเกิด"}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={form.watch("birthDate")}
+                                            onSelect={(date) => form.setValue("birthDate", date)}
+                                            initialFocus
+                                            captionLayout="dropdown"
+                                            fromYear={1950}
+                                            toYear={new Date().getFullYear()}
                                         />
-                                        {form.formState.errors.firstName && (
-                                            <p className="text-xs text-red-600">{form.formState.errors.firstName.message}</p>
-                                        )}
-                                    </div>
-
-                                    {/* นามสกุล */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[#123458]">นามสกุล</label>
-                                        <Input
-                                            {...form.register("lastName")}
-                                            placeholder="กรอกนามสกุล"
-                                            className="bg-[#F1EFEC] border-[#123458]/20 focus-visible:ring-[#123458] focus-visible:border-[#123458] rounded-lg h-11"
-                                        />
-                                        {form.formState.errors.lastName && (
-                                            <p className="text-xs text-red-600">{form.formState.errors.lastName.message}</p>
-                                        )}
-                                    </div>
-
-                                    {/* ชื่อเล่น */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[#123458]">ชื่อเล่น</label>
-                                        <Input
-                                            {...form.register("nickname")}
-                                            placeholder="กรอกชื่อเล่น (ไม่บังคับ)"
-                                            className="bg-[#F1EFEC] border-[#123458]/20 focus-visible:ring-[#123458] focus-visible:border-[#123458] rounded-lg h-11"
-                                        />
-                                    </div>
-
-                                    {/* วันเกิด */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[#123458]">วันเกิด</label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    className={cn(
-                                                        "w-full justify-start text-left font-normal bg-[#F1EFEC] border-[#123458]/20 hover:bg-[#F1EFEC] hover:border-[#123458]/40 rounded-lg h-11",
-                                                        !form.watch("birthDate") && "text-[#030303]/40"
-                                                    )}
-                                                >
-                                                    {form.watch("birthDate")
-                                                        ? format(form.watch("birthDate")!, "d MMMM yyyy", { locale: th })
-                                                        : "เลือกวันเกิด"}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0 bg-[#F1EFEC] border-[#D4C9BE] shadow-lg rounded-xl" align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={form.watch("birthDate")}
-                                                    onSelect={(date) => form.setValue("birthDate", date)}
-                                                    initialFocus
-                                                    captionLayout="dropdown"
-                                                    fromYear={1950}
-                                                    toYear={new Date().getFullYear()}
-                                                    className="rounded-xl"
-                                                    classNames={{
-                                                        day_selected: "bg-[#123458] text-white hover:bg-[#123458]/90",
-                                                        day_today: "bg-[#D4C9BE] text-[#030303]",
-                                                    }}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-                                </div>
-                            ) : (
-                                // READ-ONLY MODE - 3 Columns Grid
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    <InfoField
-                                        label="ชื่อ-นามสกุล"
-                                        value={profile?.first_name ? `${profile.first_name} ${profile.last_name}` : null}
-                                    />
-                                    <InfoField
-                                        label="ชื่อเล่น"
-                                        value={profile?.nickname}
-                                    />
-                                    <InfoField
-                                        label="วันเกิด"
-                                        value={profile?.birth_date
-                                            ? format(new Date(profile.birth_date), "d MMMM yyyy", { locale: th })
-                                            : null
-                                        }
-                                    />
-                                </div>
-                            )}
-                        </section>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                            <InfoItem label="ชื่อ-นามสกุล" value={profile?.first_name ? `${profile.first_name} ${profile.last_name}` : null} />
+                            <InfoItem label="ชื่อเล่น" value={profile?.nickname} />
+                            <InfoItem
+                                label="วันเกิด"
+                                value={profile?.birth_date ? format(new Date(profile.birth_date), "d MMMM yyyy", { locale: th }) : null}
+                            />
+                        </div>
+                    )}
 
 
-                        {/* ─────────────────────────────────────────────────────
-                            Section 2: ข้อมูลการรักษา
-                        ───────────────────────────────────────────────────── */}
-                        <section className="space-y-5">
-                            <h3 className="text-sm font-semibold text-[#123458] uppercase tracking-wide border-l-[3px] border-[#123458] pl-3">
+                    {/* ═══════════════════════════════════════════════════════════════
+                        TREATMENT INFORMATION SECTION
+                    ═══════════════════════════════════════════════════════════════ */}
+                    <div className="pt-6 border-t border-[#123458]/10 space-y-6">
+                        {/* Section Header */}
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-[#F1EFEC] rounded-xl shadow-sm">
+                                <Heart className="h-5 w-5 text-[#123458]" />
+                            </div>
+                            <h2 className="text-lg font-bold text-[#123458]">
                                 ข้อมูลการรักษา
-                            </h3>
+                            </h2>
+                        </div>
 
-                            {isEditing ? (
-                                // EDIT MODE
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 animate-in fade-in duration-300">
-                                    {/* วันที่เริ่มติดเครื่องมือ */}
+                        {isEditing ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 animate-in fade-in duration-300">
+                                {/* วันที่เริ่มติดเครื่องมือ */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-[#030303]">วันที่เริ่มติดเครื่องมือจัดฟัน</label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                className={cn(
+                                                    "w-full justify-start text-left font-medium h-12 bg-[#F1EFEC] border-[#123458]/20 rounded-xl",
+                                                    !form.watch("orthoStartDate") && "text-[#030303]/40"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-3 h-5 w-5 text-[#123458]/50" />
+                                                {form.watch("orthoStartDate")
+                                                    ? format(form.watch("orthoStartDate")!, "d MMMM yyyy", { locale: th })
+                                                    : "เลือกวันที่"}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={form.watch("orthoStartDate")}
+                                                onSelect={(date) => form.setValue("orthoStartDate", date)}
+                                                initialFocus
+                                                captionLayout="dropdown"
+                                                fromYear={2010}
+                                                toYear={new Date().getFullYear()}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+
+                                {/* Duration */}
+                                {treatmentStats?.duration && (
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[#123458]">วันที่เริ่มติดเครื่องมือจัดฟัน</label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    className={cn(
-                                                        "w-full justify-start text-left font-normal bg-[#F1EFEC] border-[#123458]/20 hover:bg-[#F1EFEC] hover:border-[#123458]/40 rounded-lg h-11",
-                                                        !form.watch("orthoStartDate") && "text-[#030303]/40"
-                                                    )}
-                                                >
-                                                    {form.watch("orthoStartDate")
-                                                        ? format(form.watch("orthoStartDate")!, "d MMMM yyyy", { locale: th })
-                                                        : "เลือกวันที่"}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0 bg-[#F1EFEC] border-[#D4C9BE] shadow-lg rounded-xl" align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={form.watch("orthoStartDate")}
-                                                    onSelect={(date) => form.setValue("orthoStartDate", date)}
-                                                    initialFocus
-                                                    captionLayout="dropdown"
-                                                    fromYear={2010}
-                                                    toYear={new Date().getFullYear()}
-                                                    className="rounded-xl"
-                                                    classNames={{
-                                                        day_selected: "bg-[#123458] text-white hover:bg-[#123458]/90",
-                                                        day_today: "bg-[#D4C9BE] text-[#030303]",
-                                                    }}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-
-                                    {/* Duration (Read-only info) */}
-                                    {treatmentStats?.duration && (
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-[#123458]">ระยะเวลาการรักษา</label>
-                                            <div className="bg-[#F1EFEC] border border-[#123458]/20 rounded-lg h-11 px-3 flex items-center text-[#030303]/60">
-                                                {treatmentStats.duration}
-                                            </div>
+                                        <label className="text-sm font-semibold text-[#030303]">ระยะเวลาการรักษา</label>
+                                        <div className="h-12 bg-[#F1EFEC] border border-[#123458]/20 rounded-xl px-4 flex items-center text-[#030303]/60">
+                                            {treatmentStats.duration}
                                         </div>
-                                    )}
-                                </div>
-                            ) : (
-                                // READ-ONLY MODE
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    <InfoField
-                                        label="วันที่เริ่มติดเครื่องมือ"
-                                        value={profile?.ortho_start_date
-                                            ? format(new Date(profile.ortho_start_date), "d MMMM yyyy", { locale: th })
-                                            : null
-                                        }
-                                    />
-                                    <InfoField
-                                        label="ระยะเวลาการรักษา"
-                                        value={treatmentStats?.duration}
-                                    />
-                                </div>
-                            )}
-                        </section>
-
-
-                        {/* ─────────────────────────────────────────────────────
-                            Action Buttons (Edit Mode Only)
-                        ───────────────────────────────────────────────────── */}
-                        {isEditing && (
-                            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-6 animate-in slide-in-from-bottom duration-300">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    onClick={handleCancel}
-                                    disabled={isLoading}
-                                    className="text-[#123458] hover:bg-[#123458]/10 rounded-full px-8 h-11 font-medium order-2 sm:order-1"
-                                >
-                                    <X className="mr-2 h-4 w-4" />
-                                    ยกเลิก
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="bg-[#123458] text-white hover:bg-[#123458]/90 rounded-full px-8 h-11 font-medium shadow-md hover:shadow-lg transition-all duration-200 order-1 sm:order-2"
-                                >
-                                    {isLoading ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            กำลังบันทึก...
-                                        </>
-                                    ) : (
-                                        "บันทึกการเปลี่ยนแปลง"
-                                    )}
-                                </Button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                                <InfoItem
+                                    label="วันที่เริ่มติดเครื่องมือ"
+                                    value={profile?.ortho_start_date ? format(new Date(profile.ortho_start_date), "d MMMM yyyy", { locale: th }) : null}
+                                />
+                                <InfoItem label="ระยะเวลาการรักษา" value={treatmentStats?.duration} />
                             </div>
                         )}
+                    </div>
 
-                    </form>
-                </CardContent>
+
+                    {/* ═══════════════════════════════════════════════════════════════
+                        ACTION BUTTONS (EDIT MODE)
+                    ═══════════════════════════════════════════════════════════════ */}
+                    {isEditing && (
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-6 animate-in slide-in-from-bottom duration-300">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={handleCancel}
+                                disabled={isLoading}
+                                className="text-[#030303]/70 hover:bg-[#F1EFEC] rounded-xl px-8 h-12 font-medium order-2 sm:order-1"
+                            >
+                                <X className="mr-2 h-4 w-4" />
+                                ยกเลิก
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={isLoading}
+                                className="bg-[#123458] text-white hover:bg-[#123458]/90 rounded-xl px-8 h-12 font-semibold shadow-lg shadow-[#123458]/20 hover:shadow-xl transition-all duration-200 order-1 sm:order-2"
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        กำลังบันทึก...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles className="mr-2 h-4 w-4" />
+                                        บันทึกการเปลี่ยนแปลง
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    )}
+                </form>
             </Card>
-
         </div>
     );
 }
