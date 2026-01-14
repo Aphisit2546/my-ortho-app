@@ -78,7 +78,7 @@ export default function LoginPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="px-6 sm:px-8 pb-8">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" suppressHydrationWarning>
 
                         <div className="space-y-2">
                             <label htmlFor="email" className="text-sm font-semibold text-[#030303]">อีเมล</label>
@@ -90,6 +90,7 @@ export default function LoginPage() {
                                     placeholder="name@example.com"
                                     {...register("email")}
                                     className={`pl-10 h-12 bg-[#F1EFEC] border-[#123458]/20 rounded-xl text-base ${errors.email ? "border-red-500" : ""}`}
+                                    suppressHydrationWarning
                                 />
                             </div>
                             {errors.email && (
@@ -111,6 +112,7 @@ export default function LoginPage() {
                                     type="password"
                                     {...register("password")}
                                     className={`pl-10 h-12 bg-[#F1EFEC] border-[#123458]/20 rounded-xl text-base ${errors.password ? "border-red-500" : ""}`}
+                                    suppressHydrationWarning
                                 />
                             </div>
                             {errors.password && (
