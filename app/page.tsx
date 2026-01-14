@@ -12,7 +12,7 @@ export default function Home() {
             <div className="h-10 w-10 rounded-xl bg-[#123458] flex items-center justify-center">
               <Sparkles className="h-5 w-5 text-[#F1EFEC]" />
             </div>
-            <span className="text-lg sm:text-xl font-bold text-[#123458]">OrthoTrack</span>
+            <span className="text-lg sm:text-xl font-bold text-[#123458]">Orthodontic Records</span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/login">
@@ -39,7 +39,6 @@ export default function Home() {
         <div className="space-y-4 sm:space-y-6">
           <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-[#123458] tracking-tight leading-tight">
             บันทึกการจัดฟัน <br />
-            <span className="text-[#123458]/80">ง่าย ครบ จบในที่เดียว</span>
           </h1>
           <p className="text-base sm:text-lg text-[#030303]/70 max-w-2xl mx-auto leading-relaxed px-2">
             ระบบติดตามการรักษาทันตกรรมจัดฟัน ช่วยให้คุณจัดการประวัติการรักษา

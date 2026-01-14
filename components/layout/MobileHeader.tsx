@@ -34,7 +34,7 @@ export default function MobileHeader() {
                         </div>
                     </SheetContent>
                 </Sheet>
-                <span className="font-bold text-[#123458]">OrthoTrack</span>
+                <span className="font-bold text-[#123458]">Orthodontic Records</span>
             </div>
         </header>
     );

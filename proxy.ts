@@ -34,7 +34,20 @@ export async function proxy(request: NextRequest) {
 
     const {
         data: { user },
+        error,
     } = await supabase.auth.getUser()
+
+    // Handle refresh token errors - clear cookies and redirect to login
+    if (error?.status === 400 && error?.message?.includes('Refresh Token')) {
+        const response = NextResponse.redirect(new URL('/login', request.url))
+        // Clear all Supabase auth cookies
+        request.cookies.getAll().forEach((cookie) => {
+            if (cookie.name.includes('supabase') || cookie.name.includes('sb-')) {
+                response.cookies.delete(cookie.name)
+            }
+        })
+        return response
+    }
 
     // Redirect unauthenticated users trying to access protected routes
     if (

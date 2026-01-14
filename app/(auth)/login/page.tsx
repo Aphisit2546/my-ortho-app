@@ -74,7 +74,7 @@ export default function LoginPage() {
                         เข้าสู่ระบบ
                     </CardTitle>
                     <CardDescription className="text-center text-[#030303]/60">
-                        ยินดีต้อนรับกลับสู่ OrthoTrack
+                        ยินดีต้อนรับกลับสู่ Orthodontic Records
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="px-6 sm:px-8 pb-8">

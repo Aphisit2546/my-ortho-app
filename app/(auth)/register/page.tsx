@@ -73,7 +73,7 @@ export default function RegisterPage() {
                         </div>
                     </div>
                     <CardTitle className="text-2xl sm:text-3xl font-bold text-center text-[#123458]">
-                        ลงทะเบียนจัดฟัน
+                        ลงทะเบียนบันทึกการจัดฟัน
                     </CardTitle>
                     <CardDescription className="text-center text-[#030303]/60">
                         สร้างบัญชีเพื่อเริ่มติดตามการรักษาของคุณ

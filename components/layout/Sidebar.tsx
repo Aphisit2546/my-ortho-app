@@ -88,7 +88,7 @@ export function Sidebar({ className }: SidebarProps) {
                     </div>
                     <div className="min-w-0">
                         <h1 className="text-base font-bold text-[#123458] tracking-tight leading-tight">
-                            OrthoTrack
+                            Orthodontic Records
                         </h1>
                         <p className="text-[10px] text-[#030303]/50 font-medium">
                             ติดตามการจัดฟัน
