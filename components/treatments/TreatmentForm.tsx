@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import { CalendarIcon, Loader2, Plus, Trash2 } from "lucide-react";
+import { CalendarIcon, Loader2, Plus, Trash2, Banknote, Clock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -54,10 +54,9 @@ const TREATMENT_TYPES = [
     { value: "other", label: "อื่นๆ (ระบุ)" },
 ];
 
-// เพิ่ม Props เพื่อรับข้อมูลสำหรับการแก้ไข
 interface TreatmentFormProps {
-    initialData?: any;     // ข้อมูลเดิม (กรณีแก้ไข)
-    treatmentId?: string;  // ID ของรายการ (กรณีแก้ไข)
+    initialData?: any;
+    treatmentId?: string;
 }
 
 export function TreatmentForm({ initialData, treatmentId }: TreatmentFormProps) {
@@ -66,11 +65,9 @@ export function TreatmentForm({ initialData, treatmentId }: TreatmentFormProps) 
     const router = useRouter();
     const supabase = createClient();
 
-    // Setup Form โดยเช็คว่ามีข้อมูลเดิมไหม
     const form = useForm<TreatmentFormValues>({
         resolver: zodResolver(treatmentSchema) as any,
         defaultValues: initialData ? {
-            // กรณีแก้ไข: map ข้อมูลจาก DB เข้า Form
             visitDate: new Date(initialData.visit_date),
             totalCost: initialData.total_cost,
             nextAppointment: initialData.next_appointment_date ? new Date(initialData.next_appointment_date) : undefined,
@@ -79,7 +76,6 @@ export function TreatmentForm({ initialData, treatmentId }: TreatmentFormProps) 
                 otherDetail: item.other_detail || "",
             })),
         } : {
-            // กรณีสร้างใหม่: ใช้ค่า Default
             visitDate: new Date(),
             items: [{ type: "adjust_tools", otherDetail: "" }],
             totalCost: 1000,
@@ -97,10 +93,8 @@ export function TreatmentForm({ initialData, treatmentId }: TreatmentFormProps) 
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("ไม่พบข้อมูลผู้ใช้");
 
-            // จัดการเรื่องรูปสลิป
-            let slipUrl = initialData?.slip_url || null; // ใช้รูปเดิมไปก่อน
+            let slipUrl = initialData?.slip_url || null;
 
-            // ถ้ามีการเลือกไฟล์ใหม่ ให้ Upload
             if (file) {
                 const fileExt = file.name.split(".").pop();
                 const fileName = `${user.id}/${Date.now()}.${fileExt}`;
@@ -120,11 +114,7 @@ export function TreatmentForm({ initialData, treatmentId }: TreatmentFormProps) 
 
             let targetId = treatmentId;
 
-            // ===========================
-            // CASE 1: EDIT (มี ID ส่งมา)
-            // ===========================
             if (treatmentId) {
-                // 1. Update ข้อมูลหลักในตาราง treatments
                 const { error: updateError } = await supabase
                     .from("treatments")
                     .update({
@@ -139,18 +129,13 @@ export function TreatmentForm({ initialData, treatmentId }: TreatmentFormProps) 
 
                 if (updateError) throw updateError;
 
-                // 2. จัดการ Items: ลบของเก่าทิ้งทั้งหมด แล้วเดี๋ยว insert ใหม่ (ง่ายกว่ามานั่งเช็คทีละอัน)
                 const { error: deleteItemsError } = await supabase
                     .from("treatment_items")
                     .delete()
                     .eq("treatment_id", treatmentId);
 
                 if (deleteItemsError) throw deleteItemsError;
-            }
-            // ===========================
-            // CASE 2: CREATE (ไม่มี ID)
-            // ===========================
-            else {
+            } else {
                 const { data: treatment, error: txError } = await supabase
                     .from("treatments")
                     .insert({
@@ -169,7 +154,6 @@ export function TreatmentForm({ initialData, treatmentId }: TreatmentFormProps) 
                 targetId = treatment.id;
             }
 
-            // 3. Insert Items (ใช้ Logic เดียวกันทั้ง Create และ Edit)
             const itemsToInsert = data.items.map((item) => ({
                 treatment_id: targetId,
                 item_type: item.type,
@@ -198,34 +182,41 @@ export function TreatmentForm({ initialData, treatmentId }: TreatmentFormProps) 
     return (
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
-            {/* GROUP 1: ข้อมูลทั่วไปของการรักษา */}
-            <div className="bg-card text-card-foreground rounded-xl border border-border/50 shadow-sm p-6 space-y-6">
-                <div className="border-b border-border/20 pb-2">
-                    <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
-                        <CalendarIcon className="h-5 w-5" />
+            {/* ═══════════════════════════════════════════════════════════════
+                SECTION 1: ข้อมูลการรักษา
+            ═══════════════════════════════════════════════════════════════ */}
+            <section className="bg-[#D4C9BE] rounded-2xl shadow-sm p-6 sm:p-8 space-y-6">
+                {/* Section Header */}
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-[#F1EFEC] rounded-xl">
+                        <CalendarIcon className="h-5 w-5 text-[#123458]" />
+                    </div>
+                    <h3 className="text-lg font-bold text-[#123458]">
                         ข้อมูลการรักษา
                     </h3>
                 </div>
 
-                <div className="grid gap-6">
-                    {/* วันที่ */}
-                    <div className="flex flex-col space-y-2">
-                        <label className="text-sm font-medium text-foreground">วันที่ไปทำฟัน <span className="text-destructive">*</span></label>
+                <div className="space-y-5">
+                    {/* วันที่ไปทำฟัน */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-[#030303]">
+                            วันที่ไปทำฟัน <span className="text-red-500">*</span>
+                        </label>
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button
                                     variant={"outline"}
                                     className={cn(
-                                        "w-full pl-3 text-left font-normal bg-input border-input hover:bg-input/80",
-                                        !form.watch("visitDate") && "text-muted-foreground"
+                                        "w-full justify-start text-left font-medium h-12 bg-[#F1EFEC] border-[#123458]/20 hover:bg-[#F1EFEC]/80 hover:border-[#123458]/40 rounded-xl",
+                                        !form.watch("visitDate") && "text-[#030303]/50"
                                     )}
                                 >
+                                    <CalendarIcon className="mr-3 h-5 w-5 text-[#123458]/60" />
                                     {form.watch("visitDate") ? (
                                         format(form.watch("visitDate"), "PPP", { locale: th })
                                     ) : (
                                         <span>เลือกวันที่</span>
                                     )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0" align="start">
@@ -241,139 +232,167 @@ export function TreatmentForm({ initialData, treatmentId }: TreatmentFormProps) 
                             </PopoverContent>
                         </Popover>
                         {form.formState.errors.visitDate && (
-                            <p className="text-destructive text-xs">{form.formState.errors.visitDate.message}</p>
+                            <p className="text-red-500 text-sm">{form.formState.errors.visitDate.message}</p>
                         )}
                     </div>
 
-                    {/* รายการรักษา */}
-                    <div className="space-y-4">
-                        <label className="text-sm font-medium text-foreground">รายการที่ทำ <span className="text-destructive">*</span></label>
-                        {fields.map((field, index) => (
-                            <div key={field.id} className="grid grid-cols-[1fr,auto] gap-3 items-start animate-fade-in">
-                                <div className="space-y-3 p-4 bg-background/50 rounded-lg border border-border/20">
-                                    <Select
-                                        onValueChange={(value) => form.setValue(`items.${index}.type`, value)}
-                                        defaultValue={field.type}
-                                    >
-                                        <SelectTrigger className="bg-input border-input">
-                                            <SelectValue placeholder="เลือกรายการ" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {TREATMENT_TYPES.map((t) => (
-                                                <SelectItem key={t.value} value={t.value}>
-                                                    {t.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                    {/* รายการที่ทำ */}
+                    <div className="space-y-3">
+                        <label className="text-sm font-semibold text-[#030303]">
+                            รายการที่ทำ <span className="text-red-500">*</span>
+                        </label>
 
-                                    {form.watch(`items.${index}.type`) === "other" && (
-                                        <Input
-                                            placeholder="ระบุรายละเอียดเพิ่มเติม..."
-                                            {...form.register(`items.${index}.otherDetail`)}
-                                            className="bg-input"
-                                        />
+                        <div className="space-y-3">
+                            {fields.map((field, index) => (
+                                <div
+                                    key={field.id}
+                                    className="flex gap-3 items-center animate-in fade-in-0 slide-in-from-top-2 duration-200"
+                                >
+                                    <div className="flex-1 space-y-3">
+                                        <Select
+                                            onValueChange={(value) => form.setValue(`items.${index}.type`, value)}
+                                            defaultValue={field.type}
+                                        >
+                                            <SelectTrigger className="w-full h-12 bg-[#F1EFEC] border-[#123458]/25 rounded-xl font-medium text-[#030303]">
+                                                <SelectValue placeholder="เลือกรายการรักษา" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {TREATMENT_TYPES.map((t) => (
+                                                    <SelectItem key={t.value} value={t.value}>
+                                                        {t.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+
+                                        {form.watch(`items.${index}.type`) === "other" && (
+                                            <Input
+                                                placeholder="ระบุรายละเอียดเพิ่มเติม..."
+                                                {...form.register(`items.${index}.otherDetail`)}
+                                                className="h-12 bg-[#F1EFEC] border-[#123458]/25 rounded-xl"
+                                            />
+                                        )}
+                                    </div>
+
+                                    {fields.length > 1 && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl h-10 w-10 flex-shrink-0"
+                                            onClick={() => remove(index)}
+                                        >
+                                            <Trash2 className="h-5 w-5" />
+                                        </Button>
                                     )}
                                 </div>
-
-                                {fields.length > 1 && (
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="mt-1 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                        onClick={() => remove(index)}
-                                    >
-                                        <Trash2 className="h-5 w-5" />
-                                    </Button>
-                                )}
-                            </div>
-                        ))}
+                            ))}
+                        </div>
 
                         <Button
                             type="button"
                             variant="secondary"
-                            size="sm"
-                            className="w-full sm:w-auto"
+                            className="w-full h-11 bg-[#F1EFEC] hover:bg-[#F1EFEC]/80 text-[#123458] border border-[#123458]/25 rounded-xl font-semibold"
                             onClick={() => append({ type: "adjust_tools", otherDetail: "" })}
                         >
                             <Plus className="mr-2 h-4 w-4" /> เพิ่มรายการรักษา
                         </Button>
+
                         {form.formState.errors.items && (
-                            <p className="text-destructive text-xs">{form.formState.errors.items.message}</p>
+                            <p className="text-red-500 text-sm">{form.formState.errors.items.message}</p>
                         )}
                     </div>
                 </div>
-            </div>
+            </section>
 
-            {/* GROUP 2: ค่าใช้จ่าย & สลิป */}
-            <div className="bg-card text-card-foreground rounded-xl border border-border/50 shadow-sm p-6 space-y-6">
-                <div className="border-b border-border/20 pb-2">
-                    <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            {/* ═══════════════════════════════════════════════════════════════
+                SECTION 2: ค่าใช้จ่าย
+            ═══════════════════════════════════════════════════════════════ */}
+            <section className="bg-[#D4C9BE] rounded-2xl shadow-sm p-6 sm:p-8 space-y-6">
+                {/* Section Header */}
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-[#F1EFEC] rounded-xl">
+                        <Banknote className="h-5 w-5 text-[#123458]" />
+                    </div>
+                    <h3 className="text-lg font-bold text-[#123458]">
                         ค่าใช้จ่าย
                     </h3>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid sm:grid-cols-2 gap-5">
+                    {/* ยอดชำระจริง */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground">ยอดชำระจริง (บาท)</label>
+                        <label className="text-sm font-semibold text-[#030303]">
+                            ยอดชำระจริง (บาท)
+                        </label>
                         <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#123458] font-bold text-lg">
+                                ฿
+                            </span>
                             <Input
                                 type="number"
                                 {...form.register("totalCost")}
-                                className="pl-8 text-lg font-semibold bg-input"
+                                className="pl-10 h-12 text-lg font-bold bg-[#F1EFEC] border-[#123458]/20 rounded-xl"
                             />
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">฿</span>
                         </div>
-                        <p className="text-xs text-muted-foreground">รวมค่าอุปกรณ์และค่าบริการทั้งหมด</p>
+                        <p className="text-xs text-[#030303]/60">
+                            รวมค่าประเมินและค่าบริการทั้งหมด
+                        </p>
                     </div>
 
+                    {/* แนบสลิป */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground">แนบสลิปโอนเงิน</label>
-                        <div className="flex items-center gap-4">
-                            <Input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => setFile(e.target.files?.[0] || null)}
-                                className="cursor-pointer bg-input file:text-primary file:font-medium"
-                            />
-                        </div>
+                        <label className="text-sm font-semibold text-[#030303]">
+                            แนบสลิปโอนเงิน <span className="text-[#030303]/50 font-normal">(ไม่บังคับ)</span>
+                        </label>
+                        <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setFile(e.target.files?.[0] || null)}
+                            className="h-12 bg-[#F1EFEC] border-[#123458]/20 rounded-xl cursor-pointer file:bg-[#123458] file:text-[#F1EFEC] file:border-0 file:rounded-lg file:px-3 file:py-1 file:mr-3 file:font-medium file:cursor-pointer"
+                        />
                         {initialData?.slip_url && !file && (
-                            <div className="text-xs text-green-600 flex items-center gap-1">
+                            <p className="text-xs text-green-600 flex items-center gap-1">
                                 ✓ มีสลิปเดิมแล้ว
-                            </div>
+                            </p>
                         )}
                     </div>
                 </div>
-            </div>
+            </section>
 
-            {/* GROUP 3: วันนัดครั้งถัดไป */}
-            <div className="bg-card text-card-foreground rounded-xl border border-border/50 shadow-sm p-6 space-y-6">
-                <div className="border-b border-border/20 pb-2">
-                    <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
-                        <CalendarIcon className="h-5 w-5" />
+            {/* ═══════════════════════════════════════════════════════════════
+                SECTION 3: นัดหมายครั้งถัดไป
+            ═══════════════════════════════════════════════════════════════ */}
+            <section className="bg-[#D4C9BE] rounded-2xl shadow-sm p-6 sm:p-8 space-y-6">
+                {/* Section Header */}
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-[#F1EFEC] rounded-xl">
+                        <Clock className="h-5 w-5 text-[#123458]" />
+                    </div>
+                    <h3 className="text-lg font-bold text-[#123458]">
                         นัดหมายครั้งถัดไป
                     </h3>
                 </div>
 
-                <div className="flex flex-col space-y-2">
-                    <label className="text-sm font-medium text-foreground">วันนัดครั้งถัดไป (ถ้ามี)</label>
+                <div className="space-y-2">
+                    <label className="text-sm font-semibold text-[#030303]">
+                        วันนัดครั้งถัดไป <span className="text-[#030303]/50 font-normal">(ถ้ามี)</span>
+                    </label>
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
                                 variant={"outline"}
                                 className={cn(
-                                    "w-full sm:w-1/2 pl-3 text-left font-normal bg-input border-input",
-                                    !form.watch("nextAppointment") && "text-muted-foreground"
+                                    "w-full sm:w-1/2 justify-start text-left font-medium h-12 bg-[#F1EFEC] border-[#123458]/20 hover:bg-[#F1EFEC]/80 hover:border-[#123458]/40 rounded-xl",
+                                    !form.watch("nextAppointment") && "text-[#030303]/50"
                                 )}
                             >
+                                <CalendarIcon className="mr-3 h-5 w-5 text-[#123458]/60" />
                                 {form.watch("nextAppointment") ? (
                                     format(form.watch("nextAppointment")!, "PPP", { locale: th })
                                 ) : (
                                     <span>ระบุวันนัด</span>
                                 )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -388,15 +407,19 @@ export function TreatmentForm({ initialData, treatmentId }: TreatmentFormProps) 
                             />
                         </PopoverContent>
                     </Popover>
-                    <p className="text-xs text-muted-foreground">หากยังไม่ทราบสามารถเว้นว่างได้ แล้วค่อยมาอัปเดตทีหลัง</p>
+                    <p className="text-xs text-[#030303]/60">
+                        หากยังไม่ทราบสามารถเว้นว่างได้ แล้วค่อยมาอัปเดตภายหลัง
+                    </p>
                 </div>
-            </div>
+            </section>
 
-            {/* ACTION BUTTONS */}
-            <div className="pt-4">
+            {/* ═══════════════════════════════════════════════════════════════
+                PRIMARY ACTION BUTTON
+            ═══════════════════════════════════════════════════════════════ */}
+            <div className="pt-2">
                 <Button
                     type="submit"
-                    className="w-full h-12 text-lg shadow-md shadow-primary/10 transition-transform active:scale-[0.98]"
+                    className="w-full h-14 text-lg font-bold bg-[#123458] hover:bg-[#123458]/90 text-[#F1EFEC] rounded-xl shadow-lg shadow-[#123458]/20 transition-all duration-200 active:scale-[0.98]"
                     disabled={isLoading}
                 >
                     {isLoading ? (

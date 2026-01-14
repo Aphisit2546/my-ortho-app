@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Coins, CalendarDays, Clock, Plus, ArrowRight } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Coins, CalendarDays, Clock, Plus, ArrowRight, FileText } from "lucide-react";
 import Link from "next/link";
 import { format, differenceInDays, differenceInMonths, differenceInYears } from "date-fns";
 import { th } from "date-fns/locale";
@@ -19,7 +18,7 @@ export default async function DashboardPage() {
         .from("treatments")
         .select("id, visit_date, total_cost, next_appointment_date")
         .eq("user_id", user?.id)
-        .order("visit_date", { ascending: true }); // เรียงเก่า -> ใหม่ เพื่อหาวันแรก
+        .order("visit_date", { ascending: true });
 
     // 2.1 ดึงข้อมูล Profile เพื่อเอาวันเริ่มจัดฟัน
     const { data: profile } = await supabase
@@ -37,15 +36,13 @@ export default async function DashboardPage() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // กรองเอาเฉพาะวันที่ Next Appointment >= วันนี้
     const upcomingAppointments = treatments
         ?.filter(t => t.next_appointment_date && new Date(t.next_appointment_date) >= today)
         .sort((a, b) => new Date(a.next_appointment_date).getTime() - new Date(b.next_appointment_date).getTime());
 
-    const nextAppt = upcomingAppointments?.[0]; // เอาอันที่ใกล้ที่สุด
+    const nextAppt = upcomingAppointments?.[0];
 
     // C. ระยะเวลาจัดฟัน
-    // ใช้ ortho_start_date จาก Profile เป็นหลัก ถ้าไม่มีค่อยใช้ First Visit
     const startDateRaw = profile?.ortho_start_date || treatments?.[0]?.visit_date;
 
     let durationText = "เพิ่งเริ่มต้น";
@@ -60,50 +57,54 @@ export default async function DashboardPage() {
         else durationText = `${days} วัน`;
     }
 
-    // D. รายการล่าสุด (เอา 3 อันล่าสุดมาโชว์)
-    // ต้อง reverse กลับ เพราะตอน fetch เราเรียงเก่า->ใหม่
-    const recentTreatments = [...(treatments || [])].reverse().slice(0, 5); // Show top 5
+    // D. รายการล่าสุด (เอา 1 อันล่าสุดมาโชว์)
+    const latestTreatment = [...(treatments || [])].reverse()[0];
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 pb-10">
-            {/* Header Section */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#123458]/10 pb-6">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-[#123458]">
+        <div className="max-w-6xl mx-auto space-y-10 pb-12">
+            {/* ═══════════════════════════════════════════════════════════════
+                PAGE HEADER
+            ═══════════════════════════════════════════════════════════════ */}
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5">
+                <div className="space-y-1">
+                    <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#123458]">
                         Dashboard
                     </h1>
-                    <p className="text-[#030303]/70 text-lg mt-1">
-                        ยินดีต้อนรับ {profile?.first_name || "กลับ"}, ภาพรวมการรักษาของคุณ
+                    <p className="text-[#030303]/70 text-base sm:text-lg">
+                        สวัสดี {profile?.first_name || "คุณ"}! นี่คือภาพรวมการจัดฟันของคุณ
                     </p>
                 </div>
                 <Link href="/treatments/create">
-                    <Button className="bg-[#123458] text-[#F1EFEC] hover:bg-[#123458]/90 hover:shadow-lg transition-all h-11 px-6 rounded-xl">
-                        <Plus className="mr-2 h-5 w-5" /> บันทึกรายการใหม่
+                    <Button className="bg-[#123458] text-[#F1EFEC] hover:bg-[#123458]/90 hover:shadow-lg transition-all h-12 px-6 rounded-xl font-semibold text-base">
+                        <Plus className="mr-2 h-5 w-5" />
+                        บันทึกรายการใหม่
                     </Button>
                 </Link>
-            </div>
+            </header>
 
-            {/* Stats Grid */}
-            <div className="grid gap-6 md:grid-cols-3">
-                {/* Card 1: ค่าใช้จ่าย */}
+            {/* ═══════════════════════════════════════════════════════════════
+                SUMMARY CARDS (3 Cards)
+            ═══════════════════════════════════════════════════════════════ */}
+            <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {/* Card 1: ค่าใช้จ่ายสะสม */}
                 <StatCard
                     title="ค่าใช้จ่ายสะสม"
                     value={`฿${totalPaid.toLocaleString()}`}
                     description="รวมทุกรายการรักษา"
                     icon={Coins}
-                    iconColor="text-[#123458]"
                 />
 
-                {/* Card 2: ระยะเวลา */}
+                {/* Card 2: ระยะเวลาจัดฟัน */}
                 <StatCard
                     title="ระยะเวลาจัดฟัน"
                     value={durationText}
-                    description={startDateRaw ? `เริ่มเมื่อ ${format(new Date(startDateRaw), "d MMM yy", { locale: th })}` : "รอข้อมูลวันเริ่ม"}
+                    description={startDateRaw
+                        ? `เริ่มเมื่อ ${format(new Date(startDateRaw), "d MMM yy", { locale: th })}`
+                        : "รอข้อมูลวันเริ่ม"}
                     icon={CalendarDays}
-                    iconColor="text-[#123458]"
                 />
 
-                {/* Card 3: นัดครั้งหน้า */}
+                {/* Card 3: นัดครั้งถัดไป */}
                 <StatCard
                     title="นัดครั้งถัดไป"
                     value={nextAppt
@@ -113,58 +114,86 @@ export default async function DashboardPage() {
                         ? `อีก ${differenceInDays(new Date(nextAppt.next_appointment_date), today)} วัน`
                         : "อย่าลืมจดวันนัดครั้งหน้านะ"}
                     icon={Clock}
-                    iconColor="text-[#123458]"
+                    className="sm:col-span-2 lg:col-span-1"
                 />
-            </div>
+            </section>
 
-            {/* Recent Activity */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                    <h2 className="text-xl font-bold text-[#123458]">ประวัติล่าสุด</h2>
-                    <Link href="/treatments" className="text-sm font-medium text-[#123458] hover:underline flex items-center">
-                        ดูทั้งหมด <ArrowRight className="ml-1 h-4 w-4" />
+            {/* ═══════════════════════════════════════════════════════════════
+                SECTION: ประวัติล่าสุด
+            ═══════════════════════════════════════════════════════════════ */}
+            <section className="space-y-4">
+                {/* Section Header */}
+                <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-[#123458]">
+                        ประวัติล่าสุด
+                    </h2>
+                    <Link
+                        href="/treatments"
+                        className="text-sm font-semibold text-[#123458] hover:text-[#123458]/80 flex items-center gap-1 transition-colors"
+                    >
+                        ดูทั้งหมด
+                        <ArrowRight className="h-4 w-4" />
                     </Link>
                 </div>
 
+                {/* Latest Treatment Card */}
                 <Card className="bg-[#D4C9BE] border-none shadow-sm rounded-2xl overflow-hidden">
-                    <CardContent className="p-0">
-                        <div className="divide-y divide-[#123458]/10">
-                            {recentTreatments.length > 0 ? (
-                                recentTreatments.map((item) => (
-                                    <div key={item.id} className="flex items-center justify-between p-5 hover:bg-[#123458]/5 transition-colors group">
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-12 w-12 rounded-full bg-[#F1EFEC] flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                                                <CalendarDays className="h-6 w-6 text-[#123458]" />
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-[#030303] text-lg">
-                                                    {format(new Date(item.visit_date), "d MMMM yyyy", { locale: th })}
-                                                </p>
-                                                <p className="text-[#030303]/60 font-medium">
-                                                    ชำระเงิน {item.total_cost.toLocaleString()} บาท
-                                                </p>
-                                            </div>
-                                        </div>
-                                        {item.next_appointment_date && (
-                                            <Badge variant="outline" className="hidden sm:flex border-[#123458]/30 text-[#123458] bg-transparent font-medium px-3 py-1">
-                                                นัด: {format(new Date(item.next_appointment_date), "d MMM", { locale: th })}
-                                            </Badge>
-                                        )}
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="text-center py-12">
-                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#123458]/10 mb-3">
-                                        <Coins className="h-6 w-6 text-[#123458]/50" />
-                                    </div>
-                                    <h3 className="text-lg font-medium text-[#123458]">ยังไม่มีรายการรักษา</h3>
-                                    <p className="text-[#030303]/60">เริ่มบันทึกรายการรักษาของคุณได้เลย</p>
+                    {latestTreatment ? (
+                        /* Has Data */
+                        <div className="p-6 sm:p-8">
+                            <div className="flex items-start gap-5">
+                                {/* Icon */}
+                                <div className="flex-shrink-0 h-14 w-14 rounded-2xl bg-[#F1EFEC] flex items-center justify-center shadow-sm">
+                                    <CalendarDays className="h-7 w-7 text-[#123458]" />
                                 </div>
-                            )}
+
+                                {/* Content */}
+                                <div className="flex-1 space-y-2">
+                                    <p className="text-xl sm:text-2xl font-bold text-[#030303]">
+                                        {format(new Date(latestTreatment.visit_date), "d MMMM yyyy", { locale: th })}
+                                    </p>
+                                    <p className="text-base text-[#030303]/70 font-medium">
+                                        ชำระเงิน <span className="font-bold text-[#123458]">฿{latestTreatment.total_cost.toLocaleString()}</span>
+                                    </p>
+                                    {latestTreatment.next_appointment_date && (
+                                        <p className="text-sm text-[#030303]/60">
+                                            นัดถัดไป: {format(new Date(latestTreatment.next_appointment_date), "d MMM yyyy", { locale: th })}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* View Link */}
+                                <Link
+                                    href={`/treatments/${latestTreatment.id}`}
+                                    className="hidden sm:flex items-center gap-2 text-sm font-semibold text-[#123458] hover:text-[#123458]/80 transition-colors px-4 py-2 rounded-lg hover:bg-[#F1EFEC]/50"
+                                >
+                                    ดูรายละเอียด
+                                    <ArrowRight className="h-4 w-4" />
+                                </Link>
+                            </div>
                         </div>
-                    </CardContent>
+                    ) : (
+                        /* Empty State */
+                        <div className="text-center py-16 px-6">
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#F1EFEC] mb-5 shadow-sm">
+                                <FileText className="h-8 w-8 text-[#123458]/50" />
+                            </div>
+                            <h3 className="text-xl font-bold text-[#123458] mb-2">
+                                ยังไม่มีรายการรักษา
+                            </h3>
+                            <p className="text-[#030303]/60 mb-6 max-w-sm mx-auto">
+                                เริ่มบันทึกรายการรักษาของคุณได้เลย เพื่อติดตามความคืบหน้าการจัดฟัน
+                            </p>
+                            <Link href="/treatments/create">
+                                <Button className="bg-[#123458] text-[#F1EFEC] hover:bg-[#123458]/90 h-11 px-6 rounded-xl font-semibold">
+                                    <Plus className="mr-2 h-5 w-5" />
+                                    เริ่มบันทึกรายการแรก
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
                 </Card>
-            </div>
+            </section>
         </div>
     );
 }

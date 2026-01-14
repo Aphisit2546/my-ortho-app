@@ -2,20 +2,19 @@ import { TreatmentForm } from "@/components/treatments/TreatmentForm";
 
 export default function CreateTreatmentPage() {
     return (
-        <div className="max-w-3xl mx-auto space-y-6">
-            <div className="space-y-1 text-center sm:text-left">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        <div className="max-w-2xl mx-auto space-y-8 pb-12">
+            {/* Page Header - Centered */}
+            <header className="text-center space-y-2">
+                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#123458]">
                     บันทึกการรักษา
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-[#030303]/70 text-base sm:text-lg max-w-md mx-auto">
                     เพิ่มข้อมูลรายการรักษาของคุณวันนี้ เพื่อติดตามความคืบหน้าอย่างต่อเนื่อง
                 </p>
-            </div>
+            </header>
 
-            {/* Container for the form */}
-            <div className="rounded-xl">
-                <TreatmentForm />
-            </div>
+            {/* Form Container */}
+            <TreatmentForm />
         </div>
     );
 }
