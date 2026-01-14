@@ -10,7 +10,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail, Lock, Sparkles } from "lucide-react";
 
 // Schema สำหรับ Login (เช็คแค่ว่าต้องกรอก)
 const loginSchema = z.object({
@@ -61,28 +61,37 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
-            <Card className="w-full max-w-md shadow-lg">
-                <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center text-primary">
+        <div className="min-h-screen flex items-center justify-center bg-[#F1EFEC] p-4">
+            <Card className="w-full max-w-md shadow-lg bg-[#D4C9BE] border-none rounded-2xl">
+                <CardHeader className="space-y-4 pb-2 pt-8 px-6 sm:px-8">
+                    {/* Logo */}
+                    <div className="flex justify-center mb-2">
+                        <div className="h-14 w-14 rounded-2xl bg-[#123458] flex items-center justify-center shadow-lg">
+                            <Sparkles className="h-7 w-7 text-[#F1EFEC]" />
+                        </div>
+                    </div>
+                    <CardTitle className="text-2xl sm:text-3xl font-bold text-center text-[#123458]">
                         เข้าสู่ระบบ
                     </CardTitle>
-                    <CardDescription className="text-center">
+                    <CardDescription className="text-center text-[#030303]/60">
                         ยินดีต้อนรับกลับสู่ OrthoTrack
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <CardContent className="px-6 sm:px-8 pb-8">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
                         <div className="space-y-2">
-                            <label htmlFor="email" className="text-sm font-medium">อีเมล</label>
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="name@example.com"
-                                {...register("email")}
-                                className={errors.email ? "border-red-500" : ""}
-                            />
+                            <label htmlFor="email" className="text-sm font-semibold text-[#030303]">อีเมล</label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#123458]/50" />
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="name@example.com"
+                                    {...register("email")}
+                                    className={`pl-10 h-12 bg-[#F1EFEC] border-[#123458]/20 rounded-xl text-base ${errors.email ? "border-red-500" : ""}`}
+                                />
+                            </div>
                             {errors.email && (
                                 <p className="text-red-500 text-xs">{errors.email.message}</p>
                             )}
@@ -90,29 +99,36 @@ export default function LoginPage() {
 
                         <div className="space-y-2">
                             <div className="flex justify-between items-center">
-                                <label htmlFor="password" className="text-sm font-medium">รหัสผ่าน</label>
-                                <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+                                <label htmlFor="password" className="text-sm font-semibold text-[#030303]">รหัสผ่าน</label>
+                                <Link href="/forgot-password" className="text-xs font-medium text-[#123458] hover:underline">
                                     ลืมรหัสผ่าน?
                                 </Link>
                             </div>
-                            <Input
-                                id="password"
-                                type="password"
-                                {...register("password")}
-                                className={errors.password ? "border-red-500" : ""}
-                            />
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#123458]/50" />
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    {...register("password")}
+                                    className={`pl-10 h-12 bg-[#F1EFEC] border-[#123458]/20 rounded-xl text-base ${errors.password ? "border-red-500" : ""}`}
+                                />
+                            </div>
                             {errors.password && (
                                 <p className="text-red-500 text-xs">{errors.password.message}</p>
                             )}
                         </div>
 
                         {errorMsg && (
-                            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-md border border-red-200">
+                            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-200">
                                 {errorMsg}
                             </div>
                         )}
 
-                        <Button type="submit" className="w-full" disabled={isLoading}>
+                        <Button
+                            type="submit"
+                            className="w-full h-12 bg-[#123458] hover:bg-[#123458]/90 rounded-xl font-semibold text-base"
+                            disabled={isLoading}
+                        >
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> กำลังเข้าสู่ระบบ...
@@ -122,9 +138,9 @@ export default function LoginPage() {
                             )}
                         </Button>
 
-                        <div className="text-center text-sm text-slate-600 mt-4">
+                        <div className="text-center text-sm text-[#030303]/60 pt-2">
                             ยังไม่มีบัญชี?{" "}
-                            <Link href="/register" className="text-primary hover:underline font-semibold">
+                            <Link href="/register" className="text-[#123458] hover:underline font-semibold">
                                 สมัครสมาชิก
                             </Link>
                         </div>

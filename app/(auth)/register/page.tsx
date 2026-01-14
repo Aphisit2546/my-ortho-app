@@ -11,7 +11,7 @@ import PasswordStrength from "@/components/ui/PasswordStrength";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail, Lock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 export default function RegisterPage() {
@@ -50,9 +50,7 @@ export default function RegisterPage() {
                 return;
             }
 
-            // ✅ แก้ตรงนี้: ไม่ต้อง Alert แล้ว สั่งให้เด้งไป Dashboard เลย
-            // เพราะปิด Confirm Email แล้ว สมัครปุ๊บ = Login ปั๊บ
-            toast.success("สมัครสมาชิกสำเร็จ!"); // ใช้ toast แทน alert จะดูดีกว่า (อย่าลืม import toast)
+            toast.success("สมัครสมาชิกสำเร็จ!");
 
             router.push("/dashboard");
             router.refresh();
@@ -65,29 +63,38 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
-            <Card className="w-full max-w-md shadow-lg">
-                <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center text-primary">
+        <div className="min-h-screen flex items-center justify-center bg-[#F1EFEC] p-4">
+            <Card className="w-full max-w-md shadow-lg bg-[#D4C9BE] border-none rounded-2xl">
+                <CardHeader className="space-y-4 pb-2 pt-8 px-6 sm:px-8">
+                    {/* Logo */}
+                    <div className="flex justify-center mb-2">
+                        <div className="h-14 w-14 rounded-2xl bg-[#123458] flex items-center justify-center shadow-lg">
+                            <Sparkles className="h-7 w-7 text-[#F1EFEC]" />
+                        </div>
+                    </div>
+                    <CardTitle className="text-2xl sm:text-3xl font-bold text-center text-[#123458]">
                         ลงทะเบียนจัดฟัน
                     </CardTitle>
-                    <CardDescription className="text-center">
+                    <CardDescription className="text-center text-[#030303]/60">
                         สร้างบัญชีเพื่อเริ่มติดตามการรักษาของคุณ
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <CardContent className="px-6 sm:px-8 pb-8">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
                         {/* Email Field */}
                         <div className="space-y-2">
-                            <label htmlFor="email" className="text-sm font-medium">อีเมล</label>
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="name@example.com"
-                                {...register("email")}
-                                className={errors.email ? "border-red-500" : ""}
-                            />
+                            <label htmlFor="email" className="text-sm font-semibold text-[#030303]">อีเมล</label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#123458]/50" />
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="name@example.com"
+                                    {...register("email")}
+                                    className={`pl-10 h-12 bg-[#F1EFEC] border-[#123458]/20 rounded-xl text-base ${errors.email ? "border-red-500" : ""}`}
+                                />
+                            </div>
                             {errors.email && (
                                 <p className="text-red-500 text-xs">{errors.email.message}</p>
                             )}
@@ -95,26 +102,32 @@ export default function RegisterPage() {
 
                         {/* Password Field */}
                         <div className="space-y-2">
-                            <label htmlFor="password" className="text-sm font-medium">รหัสผ่าน</label>
-                            <Input
-                                id="password"
-                                type="password"
-                                {...register("password")}
-                                className={errors.password ? "border-red-500" : ""}
-                            />
+                            <label htmlFor="password" className="text-sm font-semibold text-[#030303]">รหัสผ่าน</label>
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#123458]/50" />
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    {...register("password")}
+                                    className={`pl-10 h-12 bg-[#F1EFEC] border-[#123458]/20 rounded-xl text-base ${errors.password ? "border-red-500" : ""}`}
+                                />
+                            </div>
                             {/* Password Strength Indicator */}
                             <PasswordStrength password={passwordValue} />
                         </div>
 
                         {/* Confirm Password Field */}
                         <div className="space-y-2">
-                            <label htmlFor="confirmPassword" className="text-sm font-medium">ยืนยันรหัสผ่าน</label>
-                            <Input
-                                id="confirmPassword"
-                                type="password"
-                                {...register("confirmPassword")}
-                                className={errors.confirmPassword ? "border-red-500" : ""}
-                            />
+                            <label htmlFor="confirmPassword" className="text-sm font-semibold text-[#030303]">ยืนยันรหัสผ่าน</label>
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#123458]/50" />
+                                <Input
+                                    id="confirmPassword"
+                                    type="password"
+                                    {...register("confirmPassword")}
+                                    className={`pl-10 h-12 bg-[#F1EFEC] border-[#123458]/20 rounded-xl text-base ${errors.confirmPassword ? "border-red-500" : ""}`}
+                                />
+                            </div>
                             {errors.confirmPassword && (
                                 <p className="text-red-500 text-xs">{errors.confirmPassword.message}</p>
                             )}
@@ -122,13 +135,17 @@ export default function RegisterPage() {
 
                         {/* Error Message */}
                         {errorMsg && (
-                            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-md border border-red-200">
+                            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-200">
                                 {errorMsg}
                             </div>
                         )}
 
                         {/* Submit Button */}
-                        <Button type="submit" className="w-full" disabled={isLoading}>
+                        <Button
+                            type="submit"
+                            className="w-full h-12 bg-[#123458] hover:bg-[#123458]/90 rounded-xl font-semibold text-base"
+                            disabled={isLoading}
+                        >
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> กำลังสร้างบัญชี...
@@ -138,9 +155,9 @@ export default function RegisterPage() {
                             )}
                         </Button>
 
-                        <div className="text-center text-sm text-slate-600 mt-4">
+                        <div className="text-center text-sm text-[#030303]/60 pt-2">
                             มีบัญชีอยู่แล้ว?{" "}
-                            <Link href="/login" className="text-primary hover:underline font-semibold">
+                            <Link href="/login" className="text-[#123458] hover:underline font-semibold">
                                 เข้าสู่ระบบ
                             </Link>
                         </div>
