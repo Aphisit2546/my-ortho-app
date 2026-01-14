@@ -1,8 +1,8 @@
 "use client";
 
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { useState } from "react";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -11,24 +11,30 @@ export default function MobileHeader() {
     const [open, setOpen] = useState(false);
 
     return (
-        <header className="flex md:hidden items-center justify-between border-b bg-background px-4 h-14 sticky top-0 z-50">
-            <div className="flex items-center">
+        <header className="flex md:hidden items-center justify-between border-b border-[#123458]/10 bg-[#F1EFEC] px-4 h-14 sticky top-0 z-50">
+            <div className="flex items-center gap-2">
                 <Sheet open={open} onOpenChange={setOpen}>
                     <SheetTrigger asChild>
-                        <Button variant="ghost" size="icon" className="-ml-2">
-                            <Menu className="h-6 w-6" />
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-[#123458]">
+                            <Menu className="h-5 w-5" />
                         </Button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="p-0 w-72">
-                        {/* จำเป็นต้องใส่ Title เพื่อ Accessibility แต่เราซ่อนไว้ได้ */}
+                    <SheetContent
+                        side="left"
+                        className="p-0 w-[280px] max-w-[85vw] bg-[#D4C9BE] border-r-0"
+                    >
+                        {/* Hidden Title for Accessibility */}
                         <VisuallyHidden>
-                            <SheetTitle>Menu</SheetTitle>
+                            <SheetTitle>เมนูหลัก</SheetTitle>
                         </VisuallyHidden>
-                        {/* Reuse Sidebar Component */}
-                        <Sidebar />
+
+                        {/* Sidebar with h-full to fill Sheet */}
+                        <div className="h-full">
+                            <Sidebar className="h-full" />
+                        </div>
                     </SheetContent>
                 </Sheet>
-                <span className="font-bold ml-2">OrthoTrack</span>
+                <span className="font-bold text-[#123458]">OrthoTrack</span>
             </div>
         </header>
     );

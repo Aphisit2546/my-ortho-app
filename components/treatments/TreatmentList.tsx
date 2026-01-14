@@ -12,7 +12,9 @@ import {
     Search,
     Trash,
     Filter,
-    ClipboardList
+    ClipboardList,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -84,11 +86,17 @@ const TYPE_LABELS: Record<string, string> = {
     other: "อื่นๆ",
 };
 
+const PAGE_SIZE_OPTIONS = [5, 10, 15, 20, 50];
+
 export function TreatmentList({ initialTreatments }: TreatmentListProps) {
     const router = useRouter();
     const supabase = createClient();
     const [searchTerm, setSearchTerm] = useState("");
     const [filterType, setFilterType] = useState<string>("all");
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
 
     // Client-side filtering
     const filteredTreatments = initialTreatments.filter((treatment) => {
@@ -101,6 +109,29 @@ export function TreatmentList({ initialTreatments }: TreatmentListProps) {
 
         return matchesSearch && matchesType;
     });
+
+    // Pagination calculations
+    const totalItems = filteredTreatments.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedTreatments = filteredTreatments.slice(startIndex, endIndex);
+
+    // Reset to page 1 when filter changes
+    const handleFilterChange = (value: string) => {
+        setFilterType(value);
+        setCurrentPage(1);
+    };
+
+    const handleSearchChange = (value: string) => {
+        setSearchTerm(value);
+        setCurrentPage(1);
+    };
+
+    const handlePageSizeChange = (value: string) => {
+        setPageSize(Number(value));
+        setCurrentPage(1);
+    };
 
     const handleDelete = async (id: string) => {
         try {
@@ -138,6 +169,110 @@ export function TreatmentList({ initialTreatments }: TreatmentListProps) {
         </div>
     );
 
+    // Pagination Component
+    const Pagination = () => {
+        if (totalItems === 0) return null;
+
+        return (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-6 py-4 border-t border-[#123458]/10 bg-[#F1EFEC]/50">
+                {/* Items per page selector */}
+                <div className="flex items-center gap-2 text-sm text-[#030303]/70">
+                    <span>แสดง</span>
+                    <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+                        <SelectTrigger className="w-[70px] h-8 bg-[#F1EFEC] border-[#123458]/20 rounded-lg text-sm">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#F1EFEC] border-[#D4C9BE]">
+                            {PAGE_SIZE_OPTIONS.map((size) => (
+                                <SelectItem key={size} value={String(size)}>
+                                    {size}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <span>รายการ</span>
+                    <span className="text-[#030303]/50 ml-2">
+                        ({startIndex + 1}-{Math.min(endIndex, totalItems)} จาก {totalItems})
+                    </span>
+                </div>
+
+                {/* Page navigation */}
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                        className="h-8 px-2 text-[#123458] hover:bg-[#123458]/10 disabled:opacity-50"
+                    >
+                        หน้าแรก
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="h-8 w-8 text-[#123458] hover:bg-[#123458]/10 disabled:opacity-50"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+
+                    {/* Page numbers */}
+                    <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            let pageNum: number;
+                            if (totalPages <= 5) {
+                                pageNum = i + 1;
+                            } else if (currentPage <= 3) {
+                                pageNum = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                                pageNum = totalPages - 4 + i;
+                            } else {
+                                pageNum = currentPage - 2 + i;
+                            }
+
+                            if (pageNum < 1 || pageNum > totalPages) return null;
+
+                            return (
+                                <Button
+                                    key={pageNum}
+                                    variant={currentPage === pageNum ? "default" : "ghost"}
+                                    size="sm"
+                                    onClick={() => setCurrentPage(pageNum)}
+                                    className={`h-8 w-8 ${currentPage === pageNum
+                                            ? "bg-[#123458] text-white"
+                                            : "text-[#123458] hover:bg-[#123458]/10"
+                                        }`}
+                                >
+                                    {pageNum}
+                                </Button>
+                            );
+                        })}
+                    </div>
+
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="h-8 w-8 text-[#123458] hover:bg-[#123458]/10 disabled:opacity-50"
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                        className="h-8 px-2 text-[#123458] hover:bg-[#123458]/10 disabled:opacity-50"
+                    >
+                        หน้าสุดท้าย
+                    </Button>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="space-y-6">
             {/* ═══════════════════════════════════════════════════════════════
@@ -151,13 +286,13 @@ export function TreatmentList({ initialTreatments }: TreatmentListProps) {
                         placeholder="ค้นหารายการรักษา..."
                         className="pl-10 h-11 bg-[#F1EFEC] border-[#123458]/20 focus-visible:ring-[#123458] focus-visible:border-[#123458] rounded-lg"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => handleSearchChange(e.target.value)}
                     />
                 </div>
 
                 {/* Filter Dropdown */}
                 <div className="w-full sm:w-[180px]">
-                    <Select value={filterType} onValueChange={setFilterType}>
+                    <Select value={filterType} onValueChange={handleFilterChange}>
                         <SelectTrigger className="h-11 bg-[#F1EFEC] border-[#123458]/20 rounded-lg focus:ring-[#123458]">
                             <div className="flex items-center gap-2 text-[#030303]/70">
                                 <Filter className="h-4 w-4" />
@@ -191,7 +326,7 @@ export function TreatmentList({ initialTreatments }: TreatmentListProps) {
 
                     {/* Desktop View: Table */}
                     <div className="hidden md:block">
-                        {filteredTreatments.length > 0 ? (
+                        {paginatedTreatments.length > 0 ? (
                             <Table>
                                 <TableHeader>
                                     <TableRow className="hover:bg-transparent border-b border-[#123458]/10">
@@ -211,12 +346,12 @@ export function TreatmentList({ initialTreatments }: TreatmentListProps) {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredTreatments.map((treatment, index) => (
+                                    {paginatedTreatments.map((treatment, index) => (
                                         <TableRow
                                             key={treatment.id}
                                             className={`
                                                 hover:bg-[#F1EFEC]/50 transition-colors border-b border-[#123458]/5
-                                                ${index === filteredTreatments.length - 1 ? 'border-b-0' : ''}
+                                                ${index === paginatedTreatments.length - 1 ? 'border-b-0' : ''}
                                             `}
                                         >
                                             <TableCell className="font-medium text-[#030303] py-5 pl-6">
@@ -313,9 +448,9 @@ export function TreatmentList({ initialTreatments }: TreatmentListProps) {
 
                     {/* Mobile View: Card List */}
                     <div className="md:hidden">
-                        {filteredTreatments.length > 0 ? (
+                        {paginatedTreatments.length > 0 ? (
                             <div className="divide-y divide-[#123458]/10">
-                                {filteredTreatments.map((treatment) => (
+                                {paginatedTreatments.map((treatment) => (
                                     <TreatmentCard key={treatment.id} treatment={treatment} />
                                 ))}
                             </div>
@@ -323,6 +458,9 @@ export function TreatmentList({ initialTreatments }: TreatmentListProps) {
                             <EmptyState />
                         )}
                     </div>
+
+                    {/* Pagination */}
+                    <Pagination />
 
                 </CardContent>
             </Card>

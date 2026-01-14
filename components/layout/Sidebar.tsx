@@ -72,25 +72,25 @@ export function Sidebar({ className }: SidebarProps) {
 
     return (
         <div className={cn(
-            "flex flex-col h-screen bg-[#D4C9BE] border-r border-[#123458]/10",
+            "flex flex-col bg-[#D4C9BE] border-r border-[#123458]/10 overflow-hidden",
+            "h-full",
             className
         )}>
             {/* ═══════════════════════════════════════════════════════════════
                 LOGO SECTION
             ═══════════════════════════════════════════════════════════════ */}
-            <div className="p-6">
+            <div className="p-4 flex-shrink-0">
                 <Link href="/dashboard" className="flex items-center gap-3 group">
-                    <div className="relative">
-                        <div className="h-11 w-11 rounded-2xl bg-[#123458] flex items-center justify-center shadow-lg shadow-[#123458]/20 group-hover:shadow-[#123458]/30 transition-shadow">
-                            <Sparkles className="h-6 w-6 text-[#F1EFEC]" />
+                    <div className="flex-shrink-0">
+                        <div className="h-10 w-10 rounded-xl bg-[#123458] flex items-center justify-center shadow-md">
+                            <Sparkles className="h-5 w-5 text-[#F1EFEC]" />
                         </div>
-                        <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-400 border-2 border-[#D4C9BE]" />
                     </div>
-                    <div>
-                        <h1 className="text-xl font-bold text-[#123458] tracking-tight">
+                    <div className="min-w-0">
+                        <h1 className="text-base font-bold text-[#123458] tracking-tight leading-tight">
                             OrthoTrack
                         </h1>
-                        <p className="text-xs text-[#030303]/50 font-medium">
+                        <p className="text-[10px] text-[#030303]/50 font-medium">
                             ติดตามการจัดฟัน
                         </p>
                     </div>
@@ -98,42 +98,42 @@ export function Sidebar({ className }: SidebarProps) {
             </div>
 
             {/* ═══════════════════════════════════════════════════════════════
-                NAVIGATION MENU
+                NAVIGATION MENU - Scrollable
             ═══════════════════════════════════════════════════════════════ */}
-            <nav className="flex-1 px-4 space-y-1">
+            <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
                 {menuItems.map((item) => {
                     const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
                     return (
                         <Link key={item.href} href={item.href}>
                             <div
                                 className={cn(
-                                    "group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200",
+                                    "group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
                                     isActive
                                         ? "bg-[#F1EFEC] shadow-sm"
                                         : "hover:bg-[#F1EFEC]/50"
                                 )}
                             >
                                 <div className={cn(
-                                    "p-2 rounded-lg transition-colors",
+                                    "flex-shrink-0 p-2 rounded-lg transition-colors",
                                     isActive
                                         ? "bg-[#123458] text-[#F1EFEC]"
                                         : "bg-[#123458]/10 text-[#123458] group-hover:bg-[#123458]/20"
                                 )}>
                                     <item.icon className="h-5 w-5" />
                                 </div>
-                                <div>
+                                <div className="flex-1 min-w-0">
                                     <p className={cn(
-                                        "font-semibold text-sm",
+                                        "font-semibold text-sm leading-tight",
                                         isActive ? "text-[#123458]" : "text-[#030303]"
                                     )}>
                                         {item.title}
                                     </p>
-                                    <p className="text-xs text-[#030303]/50">
+                                    <p className="text-[10px] text-[#030303]/50">
                                         {item.subtitle}
                                     </p>
                                 </div>
                                 {isActive && (
-                                    <div className="ml-auto h-2 w-2 rounded-full bg-[#123458]" />
+                                    <div className="flex-shrink-0 h-2 w-2 rounded-full bg-[#123458]" />
                                 )}
                             </div>
                         </Link>
@@ -142,32 +142,32 @@ export function Sidebar({ className }: SidebarProps) {
             </nav>
 
             {/* ═══════════════════════════════════════════════════════════════
-                USER SECTION & LOGOUT
+                USER SECTION & LOGOUT - Compact, always visible
             ═══════════════════════════════════════════════════════════════ */}
-            <div className="p-4 space-y-3">
-                {/* User Info */}
-                <div className="flex items-center gap-3 px-4 py-3 bg-[#F1EFEC]/50 rounded-xl">
-                    <div className="h-10 w-10 rounded-full bg-[#123458] flex items-center justify-center text-[#F1EFEC] font-bold text-sm">
+            <div className="p-3 flex-shrink-0 border-t border-[#123458]/10 space-y-2">
+                {/* User Info + Logout in one row */}
+                <div className="flex items-center gap-2 px-2 py-2 bg-[#F1EFEC]/50 rounded-xl">
+                    <div className="h-8 w-8 rounded-full bg-[#123458] flex items-center justify-center text-[#F1EFEC] font-bold text-xs flex-shrink-0">
                         {userName.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-[#030303] truncate">
+                        <p className="font-semibold text-xs text-[#030303] truncate">
                             {userName}
                         </p>
-                        <p className="text-xs text-[#030303]/50">
+                        <p className="text-[10px] text-[#030303]/50">
                             ผู้ใช้งาน
                         </p>
                     </div>
                 </div>
 
-                {/* Logout Button */}
+                {/* Logout Button - Prominent */}
                 <Button
                     variant="ghost"
-                    className="w-full justify-start gap-3 px-4 py-3 h-auto text-[#030303]/70 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                    className="w-full justify-center gap-2 px-3 py-2.5 h-10 text-red-600 hover:text-white hover:bg-red-500 rounded-xl transition-colors bg-red-50 border border-red-200"
                     onClick={handleLogout}
                 >
-                    <LogOut className="h-5 w-5" />
-                    <span className="font-medium">ออกจากระบบ</span>
+                    <LogOut className="h-4 w-4" />
+                    <span className="font-semibold text-sm">ออกจากระบบ</span>
                 </Button>
             </div>
         </div>
