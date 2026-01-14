@@ -223,7 +223,7 @@ export function TreatmentForm({ initialData, treatmentId }: TreatmentFormProps) 
                                 <Calendar
                                     mode="single"
                                     selected={form.watch("visitDate")}
-                                    onSelect={(date) => date && form.setValue("visitDate", date)}
+                                    onSelect={(date) => date && form.setValue("visitDate", date, { shouldDirty: true, shouldValidate: true })}
                                     initialFocus
                                     captionLayout="dropdown"
                                     fromYear={2000}
@@ -399,7 +399,7 @@ export function TreatmentForm({ initialData, treatmentId }: TreatmentFormProps) 
                             <Calendar
                                 mode="single"
                                 selected={form.watch("nextAppointment")}
-                                onSelect={(date) => form.setValue("nextAppointment", date)}
+                                onSelect={(date) => form.setValue("nextAppointment", date, { shouldDirty: true })}
                                 initialFocus
                                 captionLayout="dropdown"
                                 fromYear={new Date().getFullYear()}
